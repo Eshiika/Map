@@ -22,6 +22,7 @@ class _MapScreenState extends State<MapScreen> {
   List<City> cities = [];
   final Distance distanceCalculator = const Distance();
   int count = 0;
+  City? hoveredCity;
 
   @override
   void initState() {
@@ -80,6 +81,10 @@ class _MapScreenState extends State<MapScreen> {
     return meters / 1000;
   }
 
+  bool isHoveredCity(City city) {
+    return hoveredCity != null && hoveredCity!.id == city.id;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -124,30 +129,56 @@ class _MapScreenState extends State<MapScreen> {
                 ),
                 MarkerLayer(
                   markers: [
-                    if (selectedPoint != null)
-                      Marker(
-                        point: selectedPoint!,
-                        width: 40,
-                        height: 40,
-                        child: const Icon(
-                          Icons.location_pin,
-                          size: 60,
-                          color: Colors.red,
-                        ),
-                      ),
-
                     ...cities.map((city) {
-                      final distance = getDistanceInKm(city);
                       return Marker(
                         point: LatLng(city.latitude, city.longitude),
-                        width: 30,
-                        height: 30,
-                        child: Tooltip(
-                          message: '[${distance.toStringAsFixed(1)} km] ${city.name} / ${city.population} hab. / ${city.region}',
-                          child: const Icon(
-                            Icons.location_pin,
-                            size: 40,
-                            color: Colors.blue,
+                        width: 180,
+                        height: 80,
+                        child: MouseRegion(
+                          onEnter: (_) {
+                            setState(() {
+                              hoveredCity = city;
+                            });
+                          },
+                          onExit: (_) {
+                            setState(() {
+                              if (hoveredCity?.id == city.id) {
+                                hoveredCity = null;
+                              }
+                            });
+                          },
+                          child: Stack(
+                            alignment: Alignment.center,
+                            clipBehavior: Clip.none,
+                            children: [
+                              if (isHoveredCity(city))
+                                Positioned(
+                                  bottom: 80,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      '[${getDistanceInKm(city).toStringAsFixed(1)} km] ${city.name} / ${city.population} hab. / ${city.region}',
+                                      style: const TextStyle(fontSize: 12),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              Icon(
+                                Icons.location_pin,
+                                size: 40,
+                                color: isHoveredCity(city) ? Colors.green : Colors.blue,
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -307,10 +338,24 @@ class _MapScreenState extends State<MapScreen> {
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
                       final city = cities[index];
-                      final distance = getDistanceInKm(city);
-                      return Card(
-                        child: ListTile(
-                          title: Text('[${distance.toStringAsFixed(1)} km] ${city.name}'),
+                      return MouseRegion(
+                        onEnter: (_) {
+                          setState(() {
+                            hoveredCity = city;
+                          });
+                        },
+                        onExit: (_) {
+                          setState(() {
+                            if (hoveredCity?.id == city.id) {
+                              hoveredCity = null;
+                            }
+                          });
+                        },
+                        child: Card(
+                          color: isHoveredCity(city) ? Colors.blue.shade100 : null,
+                          child: ListTile(
+                            title: Text('[${getDistanceInKm(city).toStringAsFixed(1)} km] ${city.name}'),
+                          ),
                         ),
                       );
                     },
