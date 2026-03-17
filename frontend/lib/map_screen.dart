@@ -21,6 +21,7 @@ class _MapScreenState extends State<MapScreen> {
   List<String> regions = [];
   List<City> cities = [];
   final Distance distanceCalculator = const Distance();
+  int count = 0;
 
   @override
   void initState() {
@@ -64,6 +65,7 @@ class _MapScreenState extends State<MapScreen> {
     } catch (e) {
       print('Erreur loadCities : $e');
     }
+    count = cities.length;
   }
 
   double getDistanceInKm(City city) {
@@ -82,7 +84,7 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("FlutterMap"),
+        title: Text("FlutterMap", style: TextStyle(color: Colors.blue)),
         centerTitle: true,
       ),
       body: Row(
@@ -135,12 +137,13 @@ class _MapScreenState extends State<MapScreen> {
                       ),
 
                     ...cities.map((city) {
+                      final distance = getDistanceInKm(city);
                       return Marker(
                         point: LatLng(city.latitude, city.longitude),
                         width: 30,
                         height: 30,
                         child: Tooltip(
-                          message: '${city.name} (${city.population} hab.)',
+                          message: '[${distance.toStringAsFixed(1)} km] ${city.name} / ${city.population} hab. / ${city.region}',
                           child: const Icon(
                             Icons.location_pin,
                             size: 40,
@@ -176,10 +179,9 @@ class _MapScreenState extends State<MapScreen> {
           Expanded(
             flex: 1,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const Text(
                     "Paramètres",
@@ -294,19 +296,25 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                   const SizedBox(height: 10),
                   if (cities.isNotEmpty)
-                    const Text(
-                      "Villes trouvées",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    Text(
+                      "Villes trouvées $count",
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   const SizedBox(height: 10),
-                  ...cities.map((city) {
-                    return Card(
-                      child: ListTile(
-                        title: Text(city.name),
-                        subtitle: Text('${city.population} habitants'),
-                      ),
-                    );
-                  }),
+                  ListView.builder(
+                    itemCount: cities.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final city = cities[index];
+                      final distance = getDistanceInKm(city);
+                      return Card(
+                        child: ListTile(
+                          title: Text('[${distance.toStringAsFixed(1)} km] ${city.name}'),
+                        ),
+                      );
+                    },
+                  )
                 ],
               ),
             ),
