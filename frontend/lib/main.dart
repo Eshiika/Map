@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/api_service.dart';
-import 'package:frontend/map_screen.dart';
-import 'package:frontend/repository/city_repository.dart';
+import 'package:frontend/data/datasources/api_service.dart';
+import 'package:frontend/screens/map_screen.dart';
+import 'package:frontend/data/repository/city_repository.dart';
+import 'package:frontend/viewmodels/map_view_model.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  final apiservice = ApiService();
+  final cityRepository = CityRepository(apiservice);
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => MapViewModel(cityRepository)..loadRegions(),
+      child: const MyApp(),
+    )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,7 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'FlutterMap',
       debugShowCheckedModeBanner: false,
-      home: MapScreen(cityRepository: CityRepository(ApiService()),),
+      home: MapScreen(),
     );
   }
 }

@@ -1,92 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:frontend/models/city.dart';
-import 'package:frontend/repository/city_repository.dart';
+import 'package:frontend/viewmodels/map_view_model.dart';
+import 'package:frontend/widgets/habitant_min_field.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 
-class MapScreen extends StatefulWidget {
-  final CityRepository cityRepository;
-  const MapScreen({super.key, required this.cityRepository});
-
-  @override
-  State<MapScreen> createState() => _MapScreenState();
-}
-
-class _MapScreenState extends State<MapScreen> {
-  LatLng? selectedPoint;
-  double nbCity = 10.0;
-  double rayon = 10.0;
-  String? selectedRegion;
-  final TextEditingController habitantMinController = TextEditingController();
-  List<String> regions = [];
-  List<City> cities = [];
-  final Distance distanceCalculator = const Distance();
-  int count = 0;
-  City? hoveredCity;
-
-  @override
-  void initState() {
-    super.initState();
-    loadRegions();
-  }
-
-  @override
-  void dispose() {
-    habitantMinController.dispose();
-    super.dispose();
-  }
-
-  Future<void> loadRegions() async {
-    try {
-      final List<String> result = await widget.cityRepository.getRegions();
-      setState(() {
-        regions = result;
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  Future<void> loadCities() async {
-    try {
-      if (selectedPoint == null) return;
-
-      final result = await widget.cityRepository.getCities(
-        region: selectedRegion,
-        nbVille: nbCity.toInt(),
-        habitantMin: int.tryParse(habitantMinController.text),
-        latitude: selectedPoint!.latitude,
-        longitude: selectedPoint!.longitude,
-        rayon: rayon * 1000,
-      );
-
-      setState(() {
-        cities = result;
-      });
-    } catch (e) {
-      print('Erreur loadCities : $e');
-    }
-    count = cities.length;
-  }
-
-  double getDistanceInKm(City city) {
-    if (selectedPoint == null) return 0;
-
-    final meters = distanceCalculator.as(
-      LengthUnit.Meter,
-      selectedPoint!,
-      LatLng(city.latitude, city.longitude),
-    );
-
-    return meters / 1000;
-  }
-
-  bool isHoveredCity(City city) {
-    return hoveredCity != null && hoveredCity!.id == city.id;
-  }
+class MapScreen extends StatelessWidget {
+  const MapScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<MapViewModel>();
+
     return Scaffold(
       appBar: AppBar(
         title: Text("FlutterMap", style: TextStyle(color: Colors.blue)),
@@ -110,11 +35,9 @@ class _MapScreenState extends State<MapScreen> {
                       initialZoom: 6,
                       minZoom: 3,
                       maxZoom: 15,
-                      onTap: (tapPosition, point) {
-                        setState(() {
-                          selectedPoint = point;
-                        });
-                        loadCities();
+                      onTap: (tapPosition, point) async {
+                        vm.setSelectedPoint(point);
+                        await vm.loadCities();
                       }
                   ),
                   children: [
@@ -138,29 +61,19 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                     MarkerLayer(
                         markers: [
-                          ...cities.map((city) {
+                          ...vm.cities.map((city) {
                             return Marker(
                               point: LatLng(city.latitude, city.longitude),
                               width: 180,
                               height: 80,
                               child: MouseRegion(
-                                onEnter: (_) {
-                                  setState(() {
-                                    hoveredCity = city;
-                                  });
-                                },
-                                onExit: (_) {
-                                  setState(() {
-                                    if (hoveredCity?.id == city.id) {
-                                      hoveredCity = null;
-                                    }
-                                  });
-                                },
+                                onEnter: (_) => vm.setHoveredCity(city),
+                                onExit: (_) => vm.clearHoveredCity(city),
                                 child: Stack(
                                   alignment: Alignment.center,
                                   clipBehavior: Clip.none,
                                   children: [
-                                    if (isHoveredCity(city))
+                                    if (vm.isHoveredCity(city))
                                       Positioned(
                                         bottom: 80,
                                         child: Container(
@@ -178,7 +91,7 @@ class _MapScreenState extends State<MapScreen> {
                                             ],
                                           ),
                                           child: Text(
-                                            '[${getDistanceInKm(city)
+                                            '[${vm.getDistanceInKm(city)
                                                 .toStringAsFixed(1)} km] ${city
                                                 .name} / ${city
                                                 .population} hab. / ${city
@@ -192,7 +105,7 @@ class _MapScreenState extends State<MapScreen> {
                                     Icon(
                                       Icons.location_pin,
                                       size: 40,
-                                      color: isHoveredCity(city)
+                                      color: vm.isHoveredCity(city)
                                           ? Colors.green
                                           : Colors.blue,
                                     ),
@@ -202,18 +115,14 @@ class _MapScreenState extends State<MapScreen> {
                             );
                           }),
 
-                          if (selectedPoint != null)
+                          if (vm.selectedPoint != null)
                             Marker(
-                              point: LatLng(selectedPoint!.latitude,
-                                  selectedPoint!.longitude),
+                              point: LatLng(vm.selectedPoint!.latitude,
+                                  vm.selectedPoint!.longitude),
                               width: 40,
                               height: 40,
                               child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedPoint = null;
-                                  });
-                                },
+                                onTap: vm.clearSelectedPoint,
                                 child: const Icon(
                                   Icons.location_pin,
                                   size: 60,
@@ -244,39 +153,35 @@ class _MapScreenState extends State<MapScreen> {
                         title: Text("Nombre de villes"),
                       ),
                       Slider(
-                          value: nbCity,
+                          value: vm.nbCity,
                           min: 10,
                           max: 2018,
                           divisions: 99,
                           activeColor: Colors.blue,
-                          label: nbCity.toInt().toString(),
-                          onChanged: (value) {
-                            setState(() {
-                              nbCity = value;
-                            });
-                            loadCities();
+                          label: vm.nbCity.toInt().toString(),
+                          onChanged: (value) async {
+                            vm.setNbCity(value);
+                            await vm.loadCities();
                           }
                       ),
                       ListTile(
                         title: Text("Rayon de recherche (en km)"),
                       ),
                       Slider(
-                          value: rayon,
+                          value: vm.rayon,
                           min: 10,
                           max: 300,
                           divisions: 99,
                           activeColor: Colors.blue,
-                          label: rayon.toInt().toString(),
-                          onChanged: (value) {
-                            setState(() {
-                              rayon = value;
-                            });
-                            loadCities();
+                          label: vm.rayon.toInt().toString(),
+                          onChanged: (value) async {
+                            vm.setRayon(value);
+                            await vm.loadCities();
                           }
                       ),
                       ListTile(title: Text("Région")),
                       DropdownButtonFormField<String?>(
-                        initialValue: selectedRegion,
+                        initialValue: vm.selectedRegion,
                         decoration: InputDecoration(
                           labelText: 'Région',
                           labelStyle: TextStyle(color: Colors.blue),
@@ -301,85 +206,44 @@ class _MapScreenState extends State<MapScreen> {
                             value: null,
                             child: Text('Toutes les régions'),
                           ),
-                          ...regions.map((region) {
+                          ...vm.regions.map((region) {
                             return DropdownMenuItem<String?>(
                               value: region,
                               child: Text(region),
                             );
                           }),
                         ],
-                        onChanged: (value) {
-                          setState(() {
-                            selectedRegion = value;
-                          });
-                          loadCities();
+                        onChanged: (value) async {
+                          vm.setSelectedRegion(value);
+                          await vm.loadCities();
                         },
                       ),
                       ListTile(title: Text("Habitant minimum")),
-                      TextField(
-                        controller: habitantMinController,
-                        textInputAction: TextInputAction.search,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                            hintText: "Ex: 5000",
-                            fillColor: Colors.white,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(
-                                color: Colors.blue,
-                                width: 1.5,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(
-                                color: Colors.blue,
-                                width: 2,
-                              ),
-                            ),
-                            suffixIcon: IconButton(
-                              onPressed: loadCities,
-                              icon: Icon(Icons.search),
-                            )
-                        ),
-                        onSubmitted: (value) {
-                          loadCities();
-                        },
-                      ),
+                      const HabitantMinField(),
                       const SizedBox(height: 10),
-                      if (cities.isNotEmpty)
+                      if (vm.cities.isNotEmpty)
                         Text(
-                          "Villes trouvées $count",
+                          "Villes trouvées ${vm.cities.length}",
                           style: const TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       const SizedBox(height: 10),
                       ListView.builder(
-                        itemCount: cities.length,
+                        itemCount: vm.cities.length,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
-                          final city = cities[index];
+                          final city = vm.cities[index];
                           return MouseRegion(
-                            onEnter: (_) {
-                              setState(() {
-                                hoveredCity = city;
-                              });
-                            },
-                            onExit: (_) {
-                              setState(() {
-                                if (hoveredCity?.id == city.id) {
-                                  hoveredCity = null;
-                                }
-                              });
-                            },
+                            onEnter: (_) => vm.setHoveredCity(city),
+                            onExit: (_) => vm.clearHoveredCity(city),
                             child: Card(
-                              color: isHoveredCity(city)
+                              color: vm.isHoveredCity(city)
                                   ? Colors.blue.shade100
                                   : null,
                               child: ListTile(
                                 title: Text(
-                                    '[${getDistanceInKm(city).toStringAsFixed(
+                                    '[${vm.getDistanceInKm(city).toStringAsFixed(
                                         1)} km] ${city.name}'),
                               ),
                             ),

@@ -1,5 +1,5 @@
-import 'package:frontend/api_service.dart';
-import 'package:frontend/models/city.dart';
+import 'package:frontend/data/datasources/api_service.dart';
+import 'package:frontend/data/models/city.dart';
 
 class CityRepository {
   final ApiService api;
