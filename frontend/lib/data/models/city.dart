@@ -3,16 +3,16 @@ class City {
   final String name;
   final double latitude;
   final double longitude;
-  final String region;
   final int population;
+  final String region;
 
   City({
     required this.id,
     required this.name,
     required this.latitude,
     required this.longitude,
-    required this.region,
     required this.population,
+    required this.region,
   });
 
   factory City.fromJson(Map<String, dynamic> json) {
@@ -21,8 +21,8 @@ class City {
       name: json['name'],
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
-      region: json['region'],
       population: json['population'],
+      region: json['region'],
     );
   }
 }

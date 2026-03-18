@@ -17,19 +17,16 @@ public class City {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "geom")
+    private String geom;
+
     @Column(name = "name")
     private String name;
 
-    @Column(name = "latitude")
-    private Double latitude;
-
-    @Column(name = "longitude")
-    private Double longitude;
+    @Column(name = "population")
+    private Long population;
 
     @Column(name = "region")
     private String region;
-
-    @Column(name = "population")
-    private Long population;
 
 }

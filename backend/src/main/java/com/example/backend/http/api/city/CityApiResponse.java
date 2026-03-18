@@ -2,9 +2,9 @@ package com.example.backend.http.api.city;
 
 public record CityApiResponse (
     Long id,
-    Double latittude,
-    Double longitude,
     String name,
+    Double latitude,
+    Double longitude,
     Long population,
     String region
 ) {}

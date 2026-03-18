@@ -1,6 +1,6 @@
 package com.example.backend.http.api.city;
 
-import com.example.backend.domain.city.entity.City;
+import com.example.backend.domain.city.dto.CityDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -8,12 +8,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CityMapper {
 
-    public CityApiResponse toCityApiResponse(City city) {
+    public CityApiResponse toCityApiResponse(CityDTO city) {
         return new CityApiResponse(
                 city.getId(),
+                city.getName(),
                 city.getLatitude(),
                 city.getLongitude(),
-                city.getName(),
                 city.getPopulation(),
                 city.getRegion()
         );

@@ -1,6 +1,7 @@
 package com.example.backend.domain.city.repository;
 
 import com.example.backend.common.config.AppRepository;
+import com.example.backend.domain.city.dto.CityDTO;
 import com.example.backend.domain.city.entity.City;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,21 +13,21 @@ import java.util.List;
 public interface CityRepository extends JpaRepository<City,Long> {
 
     @Query(value = """
-        SELECT *
+        SELECT c.id, c.name, ST_Y(c.geom) as latitude, ST_X(c.geom) as longitude, c.population, c.region
         FROM cities c
         WHERE (:region IS NULL OR c.region = :region)
         AND c.population >= :habitantMin
         AND ST_DWithin(
-            ST_SetSRID(ST_MakePoint(c.longitude, c.latitude), 4326)::geography,
+            c.geom::geography,
             ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
             :rayon
         )
         ORDER BY ST_Distance(
-            ST_SetSRID(ST_MakePoint(c.longitude, c.latitude), 4326)::geography,
+            c.geom::geography,
             ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography
         )
     """, nativeQuery = true)
-    List<City> getCities(String region, Pageable pageable, int habitantMin, double latitude, double longitude, double rayon);
+    List<CityDTO> getCities(String region, Pageable pageable, int habitantMin, double latitude, double longitude, double rayon);
 
     @Query("""
         SELECT DISTINCT c.region
