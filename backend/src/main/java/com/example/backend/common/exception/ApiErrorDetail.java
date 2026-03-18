@@ -1,4 +1,4 @@
-package com.example.backend.http.api;
+package com.example.backend.common.exception;
 
 import lombok.Getter;
 

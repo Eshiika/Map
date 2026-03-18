@@ -1,7 +1,7 @@
-package com.example.backend.http.api;
+package com.example.backend.http.api.city;
 
-import com.example.backend.domain.City;
-import com.example.backend.domain.service.CityService;
+import com.example.backend.domain.city.service.CityService;
+import com.example.backend.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +14,8 @@ public class CityController {
 
     private final CityService cityService;
 
-    @GetMapping("")
-    public ApiResponse<List<City>> getCities(
+    @GetMapping
+    public ApiResponse<List<CityApiResponse>> getCities(
             @RequestParam(required = false) String region,
             @RequestParam(required = false) Integer nbVille,
             @RequestParam(required = false) Integer habitantMin,

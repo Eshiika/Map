@@ -1,4 +1,4 @@
-package com.example.backend.common;
+package com.example.backend.common.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +20,7 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         List<String> allowedOrigins = environment.acceptsProfiles(Profiles.of("dev")) ?
                 List.of("*") :
-                List.of("http://localhost:54908"); // List of known Origin for PDA Application
+                List.of("http://localhost:3000"); // List of known Origin for PDA Application
 
         registry.addMapping("/api/**")
                 .allowedOrigins(allowedOrigins.toArray(String[]::new))

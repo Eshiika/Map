@@ -1,7 +1,8 @@
-package com.example.backend.domain.service;
+package com.example.backend.domain.city.service;
 
-import com.example.backend.domain.City;
-import com.example.backend.domain.repository.CityRepository;
+import com.example.backend.domain.city.repository.CityRepository;
+import com.example.backend.http.api.city.CityApiResponse;
+import com.example.backend.http.api.city.CityMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,15 +15,18 @@ import java.util.List;
 public class CityService {
 
     private final CityRepository cityRepository;
+    private final CityMapper cityMapper;
 
-    public List<City> getCities(String region, Integer nbVille, Integer habitantMin, Double latitude, Double longitude, Double rayon) {
+    public List<CityApiResponse> getCities(String region, Integer nbVille, Integer habitantMin, Double latitude, Double longitude, Double rayon) {
         int nbVilleValue = (nbVille != null) ? nbVille : 10;
         int habitantMinValue = (habitantMin != null) ? habitantMin : 0;
         double rayonValue = (rayon != null) ? rayon : 40000.0;
 
         Pageable pageable = PageRequest.of(0, nbVilleValue);
         return cityRepository.getCities(region, pageable, habitantMinValue, latitude, longitude, rayonValue)
-                .stream().toList();
+                .stream()
+                .map(cityMapper::toCityApiResponse)
+                .toList();
     }
 
     public List<String> getRegions() {

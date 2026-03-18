@@ -1,4 +1,4 @@
-package com.example.backend.domain;
+package com.example.backend.domain.city.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

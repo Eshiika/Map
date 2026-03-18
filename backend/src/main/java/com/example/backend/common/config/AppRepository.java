@@ -1,4 +1,4 @@
-package com.example.backend.common;
+package com.example.backend.common.config;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;

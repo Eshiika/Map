@@ -1,5 +1,6 @@
-package com.example.backend.http.api;
+package com.example.backend.common.response;
 
+import com.example.backend.common.exception.ApiErrorDetail;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

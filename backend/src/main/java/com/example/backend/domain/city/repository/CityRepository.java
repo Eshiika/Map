@@ -1,7 +1,7 @@
-package com.example.backend.domain.repository;
+package com.example.backend.domain.city.repository;
 
-import com.example.backend.common.*;
-import com.example.backend.domain.City;
+import com.example.backend.common.config.AppRepository;
+import com.example.backend.domain.city.entity.City;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
