@@ -30,6 +30,7 @@ class MapScreen extends StatelessWidget {
               Expanded(
                 flex: mapFlex,
                 child: FlutterMap(
+                  mapController: vm.mapController,
                   options: MapOptions(
                       initialCenter: const LatLng(47, 2),
                       initialZoom: 6,
@@ -59,6 +60,22 @@ class MapScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (vm.selectedPoint != null)
+                      CircleLayer(
+                        circles: [
+                          CircleMarker(
+                            point: LatLng(
+                              vm.selectedPoint!.latitude,
+                              vm.selectedPoint!.longitude,
+                            ),
+                            radius: vm.rayon * 1000,
+                            useRadiusInMeter: true,
+                            color: Colors.red.withOpacity(0.2),
+                            borderColor: Colors.red,
+                            borderStrokeWidth: 2,
+                          ),
+                        ],
+                      ),
                     MarkerLayer(
                         markers: [
                           ...vm.cities.map((city) {
@@ -131,7 +148,32 @@ class MapScreen extends StatelessWidget {
                               ),
                             ),
                         ]
-                    )
+                    ),
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      child: Column(
+                        children: [
+                          FloatingActionButton.small(
+                            onPressed: vm.zoomIn,
+                            backgroundColor: Colors.white,
+                            child: const Icon(Icons.add, color: Colors.black),
+                          ),
+                          const SizedBox(height: 8),
+                          FloatingActionButton.small(
+                            onPressed: vm.zoomOut,
+                            backgroundColor: Colors.white,
+                            child: const Icon(Icons.remove, color: Colors.black),
+                          ),
+                          const SizedBox(height: 8),
+                          FloatingActionButton.small(
+                            onPressed: vm.resetAll,
+                            backgroundColor: Colors.white,
+                            child: const Icon(Icons.refresh, color: Colors.black),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

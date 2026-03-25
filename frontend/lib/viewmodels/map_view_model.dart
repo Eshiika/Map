@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../data/models/city.dart';
 import '../data/repository/city_repository.dart';
@@ -7,6 +8,13 @@ class MapViewModel extends ChangeNotifier {
   final CityRepository cityRepository;
 
   MapViewModel(this.cityRepository);
+
+  final MapController mapController = MapController();
+
+  static const LatLng defaultCenter = LatLng(47, 2);
+  static const double defaultZoom = 6;
+  static const double minMapZoom = 3;
+  static const double maxMapZoom = 15;
 
   LatLng? selectedPoint;
   double nbCity = 10;
@@ -111,5 +119,36 @@ class MapViewModel extends ChangeNotifier {
 
   bool isHoveredCity(City city) {
     return hoveredCity != null && hoveredCity!.id == city.id;
+  }
+
+  void zoomIn() {
+    final currentCenter = mapController.camera.center;
+    final currentZoom = mapController.camera.zoom;
+    final newZoom = (currentZoom + 1).clamp(minMapZoom, maxMapZoom);
+    mapController.move(currentCenter, newZoom);
+  }
+
+  void zoomOut() {
+    final currentCenter = mapController.camera.center;
+    final currentZoom = mapController.camera.zoom;
+    final newZoom = (currentZoom - 1).clamp(minMapZoom, maxMapZoom);
+    mapController.move(currentCenter, newZoom);
+  }
+
+  void resetMap() {
+    mapController.move(defaultCenter, defaultZoom);
+  }
+
+  Future<void> resetAll() async {
+    selectedPoint = null;
+    cities = [];
+    hoveredCity = null;
+    selectedRegion = null;
+    habitantMin = null;
+    nbCity = 10;
+    rayon = 10;
+
+    mapController.move(defaultCenter, defaultZoom);
+    notifyListeners();
   }
 }
