@@ -32,6 +32,7 @@ class _HabitantMinFieldState extends State<HabitantMinField> {
     final vm = context.read<MapViewModel>();
 
     return TextField(
+      key: Key('textFieldPopulation'),
       controller: controller,
       textInputAction: TextInputAction.search,
       keyboardType: TextInputType.number,

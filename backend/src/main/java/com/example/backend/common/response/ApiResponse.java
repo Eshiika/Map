@@ -18,19 +18,8 @@ public class ApiResponse<T> {
     private LocalDateTime timestamp;
     private List<ApiErrorDetail> errors;
 
-    public static ApiResponse<Void> ok() {
-        return new ApiResponse<>(true, HttpStatus.OK.value(), HttpStatus.OK.getReasonPhrase(), null, LocalDateTime.now(), null);
-    }
-
     public static <T> ApiResponse<T> ok(T data) {
         return new ApiResponse<>(true, HttpStatus.OK.value(), HttpStatus.OK.getReasonPhrase(), data, LocalDateTime.now(), null);
     }
 
-    public static <T> ApiResponse<T> error(HttpStatus status, List<ApiErrorDetail> errors) {
-        return new ApiResponse<>(false, status.value(), status.getReasonPhrase(), null, LocalDateTime.now(), errors);
-    }
-
-    public static <T> ApiResponse<T> error(HttpStatus status, String message, List<ApiErrorDetail> errors) {
-        return new ApiResponse<>(false, status.value(), message, null, LocalDateTime.now(), errors);
-    }
 }

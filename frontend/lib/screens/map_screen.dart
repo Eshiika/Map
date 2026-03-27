@@ -30,6 +30,7 @@ class MapScreen extends StatelessWidget {
               Expanded(
                 flex: mapFlex,
                 child: FlutterMap(
+                  key: Key('mapWidget'),
                   mapController: vm.mapController,
                   options: MapOptions(
                       initialCenter: const LatLng(47, 2),
@@ -266,6 +267,7 @@ class MapScreen extends StatelessWidget {
                       if (vm.cities.isNotEmpty)
                         Text(
                           "Villes trouvées ${vm.cities.length}",
+                          key: Key('citiesCount'),
                           style: const TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
